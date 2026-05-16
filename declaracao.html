@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Declaração de Matrícula · Descomplica</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <!-- pdf-lib para editar o PDF no browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <!-- PDF base embutido como base64 -->
+  <script src="declaracao_base_b64.js"></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/logo.png" alt="Descomplica Faculdade Digital">
+    </div>
+    <div class="student-badge" data-student-badge>—</div>
+  </header>
+
+  <main>
+
+    <div class="page-head reveal">
+      <div class="crumb">Início → Declaração de Matrícula</div>
+      <h1>Declaração de <span class="accent">Matrícula</span>.</h1>
+    </div>
+
+    <section class="reveal">
+      <div class="card-list">
+        <div class="card" style="cursor:default;">
+          <span class="num">📄</span>
+          <div class="body">
+            <h3 id="card-name">Carregando...</h3>
+            <p id="card-info">Conclusão prevista: setembro de 2027</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <div class="featured">
+        <span class="eyebrow">Documento oficial</span>
+        <h2>Gerado com seus dados cadastrados.</h2>
+        <p>Nome, CPF e curso são preenchidos automaticamente com as informações do seu perfil.</p>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <div class="field">
+        <label>Curso</label>
+        <select id="course-select">
+          <option>MBA em Gestão Estratégica Digital</option>
+          <option>Direito</option>
+          <option>Administração</option>
+          <option>Engenharia de Software</option>
+          <option>Psicologia</option>
+          <option>Especialização em Ciência de Dados</option>
+        </select>
+        <span class="hint">Selecione o curso que aparecerá na declaração.</span>
+      </div>
+
+      <button class="btn btn--block" id="download-btn">
+        ⬇ Baixar Declaração de Matrícula (PDF)
+      </button>
+
+      <p id="status-msg" style="margin-top:14px;text-align:center;font-size:0.82rem;color:var(--gray);display:none;">
+        Gerando documento...
+      </p>
+      <p id="error-msg" style="margin-top:14px;text-align:center;font-size:0.82rem;color:#ff4d4d;display:none;"></p>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H10v7H5a1 1 0 0 1-1-1V11z"/></svg>Início<span class="nav-dot"></span></a>
+    <a href="cursos.html"><svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z"/></svg>Cursos<span class="nav-dot"></span></a>
+    <a href="aluno.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Aluno<span class="nav-dot"></span></a>
+    <a href="declaracao.html" class="active"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>Declaração<span class="nav-dot"></span></a>
+    <a href="contato.html"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/></svg>Contato<span class="nav-dot"></span></a>
+  </nav>
+
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const s = Portal.Student.get();
+      if (!s) return;
+      document.getElementById('card-name').textContent = s.name;
+      document.getElementById('card-info').textContent =
+        `CPF: ${Portal.formatCPF(s.cpf)} · Conclusão: set/2027`;
+    });
+
+    document.getElementById('download-btn').addEventListener('click', async () => {
+      const s = Portal.Student.get();
+      if (!s) { alert('Faça o cadastro primeiro.'); return; }
+
+      const btn = document.getElementById('download-btn');
+      const statusEl = document.getElementById('status-msg');
+      const errorEl = document.getElementById('error-msg');
+
+      btn.disabled = true;
+      btn.textContent = 'Gerando PDF...';
+      statusEl.style.display = 'block';
+      statusEl.textContent = 'Processando documento...';
+      errorEl.style.display = 'none';
+
+      try {
+        const course = document.getElementById('course-select').value;
+        const name = s.name;
+        const cpf = Portal.formatCPF(s.cpf);
+        const today = new Date();
+        const dia = String(today.getDate()).padStart(2, '0');
+        const mes = today.toLocaleDateString('pt-BR', { month: 'long' });
+        const ano = today.getFullYear();
+
+        // Carrega PDF base do base64 embutido
+        const rawBase64 = DECLARACAO_BASE_PDF;
+        const binary = atob(rawBase64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+        statusEl.textContent = 'Preenchendo dados...';
+        const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+        const pages = pdfDoc.getPages();
+        const page = pages[0];
+        const { height } = page.getSize(); // 841.89
+
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const sz = 10;
+        const black = PDFLib.rgb(0, 0, 0);
+        const white = PDFLib.rgb(1, 1, 1);
+
+        function overwrite(x, topY, w, h, text) {
+          const y = height - topY;
+          page.drawRectangle({ x, y, width: w, height: h, color: white, borderWidth: 0 });
+          page.drawText(text, { x, y: y + 2, size: sz, font, color: black });
+        }
+
+        // Nome
+        overwrite(320, 302.5, 220, 15, `${name},`);
+        // CPF
+        overwrite(88, 312.5, 110, 14, `${cpf},`);
+        // Curso
+        overwrite(88, 323.5, 210, 14, `${course},`);
+        // Data início
+        overwrite(155, 334.5, 110, 14, 'setembro de 2024');
+        // Data fim → 2027
+        overwrite(404, 334.5, 100, 14, 'setembro de 2027.');
+        // Data assinatura
+        overwrite(267, 434.5, 195, 15, `${dia}     ${mes}          ${ano}`);
+
+        statusEl.textContent = 'Preparando download...';
+        const pdfBytes = await pdfDoc.save();
+
+        // Cria blob e dispara download direto
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `declaracao_matricula_${name.split(' ')[0].toLowerCase()}_${ano}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+        statusEl.textContent = '✓ Download iniciado!';
+        statusEl.style.color = 'var(--green)';
+        setTimeout(() => {
+          statusEl.style.display = 'none';
+          statusEl.style.color = 'var(--gray)';
+        }, 3000);
+
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = 'Erro ao gerar o PDF: ' + err.message;
+        errorEl.style.display = 'block';
+        statusEl.style.display = 'none';
+      }
+
+      btn.disabled = false;
+      btn.textContent = '⬇ Baixar Declaração de Matrícula (PDF)';
+    });
+  </script>
+</body>
+</html>

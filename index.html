@@ -3,21 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1a2238">
-  <title>Portal Acadêmico</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Descomplica Faculdade Digital</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Portal">
+  <meta name="apple-mobile-web-app-title" content="Descomplica">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <header class="topbar">
     <div class="brand">
-      <div class="brand-mark">A</div>
-      <span>Portal Acadêmico</span>
+      <img src="icons/logo.png" alt="Descomplica Faculdade Digital">
     </div>
     <div class="student-badge" data-student-badge>—</div>
   </header>
@@ -25,13 +24,12 @@
   <main>
 
     <section class="hero reveal">
-      <span class="year">Edição · 2026</span>
-      <span class="eyebrow">Boletim do estudante</span>
-      <h1>Sua jornada,<br><span class="accent">documentada</span>.</h1>
-      <p class="lede">Cursos, secretaria, atestados e diploma — tudo em um único lugar, instalável no seu celular.</p>
-      <div class="hero-meta">
-        <span>Semestre 2026.1</span>
-        <span>Online &amp; offline</span>
+      <span class="year">Semestre 2026.1</span>
+      <h1 id="hero-title">Bem-vindo ao<br><span class="accent">portal.</span></h1>
+      <p class="lede" id="hero-lede">Acesse suas notas, documentos e tudo da sua faculdade em um só lugar.</p>
+      <div class="hero-meta" id="hero-meta">
+        <span>2026.1 em andamento</span>
+        <span>Provas: jun/2026</span>
       </div>
     </section>
 
@@ -65,11 +63,11 @@
           </div>
           <span class="arrow">→</span>
         </a>
-        <a class="card" href="diploma.html">
+        <a class="card" href="declaracao.html">
           <span class="num">04</span>
           <div class="body">
-            <h3>Diploma</h3>
-            <p>Emitir comprovante de conclusão</p>
+            <h3>Declaração de Matrícula</h3>
+            <p>Emitir comprovante oficial</p>
           </div>
           <span class="arrow">→</span>
         </a>
@@ -96,8 +94,8 @@
       <div class="featured">
         <span class="eyebrow">Em destaque</span>
         <h2>Calendário acadêmico do segundo semestre.</h2>
-        <p>Provas finais entre 8 e 19 de junho. Período de rematrícula abre em 25 de maio. Confira a agenda completa na área do aluno.</p>
-        <a class="btn btn--cream mt-md" href="aluno.html">Ver calendário →</a>
+        <p>Provas finais entre 8 e 19 de junho. Rematrícula abre em 25 de maio.</p>
+        <a class="btn mt-md" href="aluno.html">Ver calendário →</a>
       </div>
     </section>
 
@@ -113,11 +111,11 @@
         </div>
         <div>
           <strong>1.2k</strong>
-          <span>Alunos matriculados</span>
+          <span>Alunos</span>
         </div>
         <div>
           <strong>87%</strong>
-          <span>Empregabilidade</span>
+          <span>Emprego</span>
         </div>
       </div>
     </section>
@@ -127,31 +125,35 @@
   <nav class="bottom-nav">
     <a href="index.html" class="active">
       <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H10v7H5a1 1 0 0 1-1-1V11z"/></svg>
-      Início
-      <span class="nav-dot"></span>
+      Início<span class="nav-dot"></span>
     </a>
     <a href="cursos.html">
       <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z"/></svg>
-      Cursos
-      <span class="nav-dot"></span>
+      Cursos<span class="nav-dot"></span>
     </a>
     <a href="aluno.html">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-      Aluno
-      <span class="nav-dot"></span>
+      Aluno<span class="nav-dot"></span>
     </a>
-    <a href="diploma.html">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg>
-      Diploma
-      <span class="nav-dot"></span>
+    <a href="declaracao.html">
+      <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+      Declaração<span class="nav-dot"></span>
     </a>
     <a href="contato.html">
       <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/></svg>
-      Contato
-      <span class="nav-dot"></span>
+      Contato<span class="nav-dot"></span>
     </a>
   </nav>
 
   <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const s = Portal.Student.get();
+      if (!s) return;
+      const first = s.name.split(' ')[0];
+      document.getElementById('hero-title').innerHTML = `Olá,<br><span class="accent">${first}.</span>`;
+      document.getElementById('hero-lede').textContent = `Bem-vindo de volta. Confira suas notas, emita documentos e acompanhe sua jornada.`;
+    });
+  </script>
 </body>
 </html>
