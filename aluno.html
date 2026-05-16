@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a2238">
+  <title>Área do aluno · Portal Acadêmico</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <span>Portal Acadêmico</span>
+    </div>
+    <div class="student-badge" data-student-badge>—</div>
+  </header>
+
+  <main>
+
+    <div class="page-head reveal">
+      <div class="crumb">Início → Área do aluno</div>
+      <h1>Olá, <span class="serif-italic" id="greeting-name">estudante</span>.</h1>
+    </div>
+
+    <section class="reveal">
+      <div class="stats">
+        <div>
+          <strong id="avg-grade">8.4</strong>
+          <span>Média geral</span>
+        </div>
+        <div>
+          <strong>94%</strong>
+          <span>Frequência</span>
+        </div>
+        <div>
+          <strong>6</strong>
+          <span>Disciplinas</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <div class="section-head">
+        <h2>Notas recentes</h2>
+        <span class="count">2026.1</span>
+      </div>
+      <div class="card-list">
+        <a class="card" href="#">
+          <span class="num">A</span>
+          <div class="body">
+            <h3>Cálculo Diferencial</h3>
+            <p>Prof. Almeida · N1 8,5 · N2 9,0</p>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="card" href="#">
+          <span class="num">B</span>
+          <div class="body">
+            <h3>Algoritmos e Estruturas</h3>
+            <p>Profa. Tavares · N1 9,2 · N2 8,7</p>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="card" href="#">
+          <span class="num">C</span>
+          <div class="body">
+            <h3>Fundamentos da Computação</h3>
+            <p>Prof. Vianna · N1 7,8 · N2 8,4</p>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+        <a class="card" href="#">
+          <span class="num">D</span>
+          <div class="body">
+            <h3>Inglês Instrumental</h3>
+            <p>Profa. Oliveira · N1 9,5 · N2 9,0</p>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <div class="section-head">
+        <h2>Próximas aulas</h2>
+        <span class="count">Hoje</span>
+      </div>
+      <div class="card-list">
+        <div class="card">
+          <span class="num">19h</span>
+          <div class="body">
+            <h3>Cálculo Diferencial</h3>
+            <p>Sala 204 · Bloco B</p>
+          </div>
+        </div>
+        <div class="card">
+          <span class="num">21h</span>
+          <div class="body">
+            <h3>Algoritmos e Estruturas</h3>
+            <p>Lab. 03 · Bloco C</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H10v7H5a1 1 0 0 1-1-1V11z"/></svg>Início<span class="nav-dot"></span></a>
+    <a href="cursos.html"><svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z"/></svg>Cursos<span class="nav-dot"></span></a>
+    <a href="aluno.html" class="active"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Aluno<span class="nav-dot"></span></a>
+    <a href="diploma.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg>Diploma<span class="nav-dot"></span></a>
+    <a href="contato.html"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/></svg>Contato<span class="nav-dot"></span></a>
+  </nav>
+
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const s = Portal.Student.get();
+      if (s) document.getElementById('greeting-name').textContent = s.name.split(' ')[0];
+    });
+  </script>
+</body>
+</html>
