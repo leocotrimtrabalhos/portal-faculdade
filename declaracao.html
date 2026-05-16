@@ -8,9 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
-  <!-- pdf-lib para editar o PDF no browser -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-  <!-- PDF base embutido como base64 -->
   <script src="declaracao_base_b64.js"></script>
 </head>
 <body>
@@ -67,9 +65,7 @@
         ⬇ Baixar Declaração de Matrícula (PDF)
       </button>
 
-      <p id="status-msg" style="margin-top:14px;text-align:center;font-size:0.82rem;color:var(--gray);display:none;">
-        Gerando documento...
-      </p>
+      <p id="status-msg" style="margin-top:14px;text-align:center;font-size:0.82rem;color:var(--gray);display:none;"></p>
       <p id="error-msg" style="margin-top:14px;text-align:center;font-size:0.82rem;color:#ff4d4d;display:none;"></p>
     </section>
 
@@ -92,6 +88,25 @@
       document.getElementById('card-info').textContent =
         `CPF: ${Portal.formatCPF(s.cpf)} · Conclusão: set/2027`;
     });
+
+    // Quebra texto em linhas para caber na largura máxima (em pt)
+    function wrapText(text, font, size, maxWidth) {
+      const words = text.split(' ');
+      const lines = [];
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        const w = font.widthOfTextAtSize(test, size);
+        if (w <= maxWidth) {
+          line = test;
+        } else {
+          if (line) lines.push(line);
+          line = word;
+        }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
 
     document.getElementById('download-btn').addEventListener('click', async () => {
       const s = Portal.Student.get();
@@ -116,46 +131,63 @@
         const mes = today.toLocaleDateString('pt-BR', { month: 'long' });
         const ano = today.getFullYear();
 
-        // Carrega PDF base do base64 embutido
-        const rawBase64 = DECLARACAO_BASE_PDF;
-        const binary = atob(rawBase64);
+        // Decodifica base64 → bytes
+        const binary = atob(DECLARACAO_BASE_PDF);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
         statusEl.textContent = 'Preenchendo dados...';
         const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
-        const pages = pdfDoc.getPages();
-        const page = pages[0];
+        const page = pdfDoc.getPages()[0];
         const { height } = page.getSize(); // 841.89
 
         const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-        const sz = 10;
-        const black = PDFLib.rgb(0, 0, 0);
+        const fontSize = 10;
+        const lineHeight = 11.5;
+        const xStart = 90;
+        const maxWidth = 420;
         const white = PDFLib.rgb(1, 1, 1);
+        const black = PDFLib.rgb(0, 0, 0);
 
-        function overwrite(x, topY, w, h, text) {
-          const y = height - topY;
-          page.drawRectangle({ x, y, width: w, height: h, color: white, borderWidth: 0 });
-          page.drawText(text, { x, y: y + 2, size: sz, font, color: black });
+        // === 1. Cobre o parágrafo inteiro com branco ===
+        // top=285 → bottom=382, ou seja y em pdf-lib: height-382 até height-285
+        page.drawRectangle({
+          x: 88,
+          y: height - 382,
+          width: 425,
+          height: 97,
+          color: white,
+          borderWidth: 0,
+        });
+
+        // === 2. Reescreve o parágrafo completo ===
+        const paraText =
+          `        Declaramos, para os devidos fins, que ${name}, titular do CPF ` +
+          `${cpf}, é aluno(a) regularmente matriculado(a) na Faculdade Descomplica, no curso ` +
+          `${course}, com carga horária total de 390 horas, tendo como data ` +
+          `de início 27 de setembro de 2024 e previsão para término em 27 de ` +
+          `setembro de 2027. ` +
+          `Declaramos, ainda, que a Faculdade Descomplica está credenciada pela Portaria Ministerial ` +
+          `nº 323, de 06/03/2020, DOU nº 46, de 09/03/2020, e que o referido curso inclui-se na ` +
+          `categoria de Pós-Graduação Lato Sensu - Especialização, realizado nos termos da ` +
+          `Resolução CNE/CES nº 1/2018, de 06/04/2018.`;
+
+        const lines = wrapText(paraText, font, fontSize, maxWidth);
+        let y = height - 298; // primeira linha
+        for (const line of lines) {
+          page.drawText(line, { x: xStart, y, size: fontSize, font, color: black });
+          y -= lineHeight;
         }
 
-        // Nome
-        overwrite(320, 302.5, 220, 15, `${name},`);
-        // CPF
-        overwrite(88, 312.5, 110, 14, `${cpf},`);
-        // Curso
-        overwrite(88, 323.5, 210, 14, `${course},`);
-        // Data início
-        overwrite(155, 334.5, 110, 14, 'setembro de 2024');
-        // Data fim → 2027
-        overwrite(404, 334.5, 100, 14, 'setembro de 2027.');
-        // Data assinatura
-        overwrite(267, 434.5, 195, 15, `${dia}     ${mes}          ${ano}`);
+        // === 3. Cobre e reescreve data de assinatura ===
+        page.drawRectangle({ x: 272, y: height - 433, width: 180, height: 13, color: white, borderWidth: 0 });
+        page.drawText(`${dia}     ${mes}          ${ano}`, {
+          x: 275, y: height - 431.5, size: fontSize, font, color: black
+        });
 
+        // === 4. Salva e baixa ===
         statusEl.textContent = 'Preparando download...';
         const pdfBytes = await pdfDoc.save();
-
-        // Cria blob e dispara download direto
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -175,7 +207,7 @@
 
       } catch (err) {
         console.error(err);
-        errorEl.textContent = 'Erro ao gerar o PDF: ' + err.message;
+        errorEl.textContent = 'Erro: ' + err.message;
         errorEl.style.display = 'block';
         statusEl.style.display = 'none';
       }
