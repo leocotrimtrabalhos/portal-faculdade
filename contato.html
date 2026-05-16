@@ -91,6 +91,24 @@
       </div>
     </section>
 
+    <section class="reveal">
+      <div class="section-head">
+        <h2>Instalar o app</h2>
+      </div>
+      <div style="background:var(--dark-2);border:1.5px solid var(--green);border-radius:var(--radius);padding:24px 20px;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">📲</div>
+        <h3 style="margin-bottom:8px;">Adicione à tela inicial</h3>
+        <p style="color:var(--gray);font-size:0.88rem;margin-bottom:20px;">Acesse o portal direto da sua tela, sem abrir o navegador. Funciona offline.</p>
+        <button class="btn btn--block" id="install-app-btn">Instalar aplicativo</button>
+        <p id="install-ios-hint" style="display:none;margin-top:14px;font-size:0.8rem;color:var(--gray-light);">
+          No iPhone: toque em <strong>Compartilhar</strong> → <strong>Adicionar à Tela de Início</strong>
+        </p>
+        <p id="install-done-msg" style="display:none;margin-top:14px;font-size:0.85rem;color:var(--green);font-weight:600;">
+          ✓ App instalado com sucesso!
+        </p>
+      </div>
+    </section>
+
   </main>
 
   <nav class="bottom-nav">
@@ -109,6 +127,34 @@
       msg.style.display = 'block';
       msg.textContent = 'Mensagem registrada localmente (estudo · sem envio real).';
       e.target.reset();
+    });
+
+    let installPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; });
+
+    document.getElementById('install-app-btn').addEventListener('click', async () => {
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+      if (isStandalone) {
+        document.getElementById('install-done-msg').style.display = 'block';
+        document.getElementById('install-done-msg').textContent = '✓ App já está instalado!';
+        return;
+      }
+      if (isIOS) {
+        document.getElementById('install-ios-hint').style.display = 'block';
+        return;
+      }
+      if (installPrompt) {
+        installPrompt.prompt();
+        const { outcome } = await installPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('install-done-msg').style.display = 'block';
+          installPrompt = null;
+        }
+      } else {
+        alert('Use o menu do Chrome (⋮) → "Adicionar à tela inicial"');
+      }
     });
   </script>
 </body>
